@@ -98,7 +98,7 @@ if ! git remote | grep -q '^origin$'; then
 fi
 git add -A
 # README 里引用的几张真机截图（shots/ 默认被忽略，单独强制加）
-for s in dock-a11y-stand.png dock-a11y-final.png dock-a11y-control.png eye-zoom-before.png eye-zoom-after.png; do
+for s in dock-a11y-stand.png dock-a11y-final.png dock-a11y-control.png ota-about.png ota-control.png eye-zoom-before.png eye-zoom-after.png; do
   [ -f "shots/$s" ] && git add -f "shots/$s"
 done
 if ! git diff --cached --quiet; then

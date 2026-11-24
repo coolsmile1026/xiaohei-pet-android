@@ -722,4 +722,34 @@ Android 7+ 不能传 `file://`，项目又不依赖 androidx，所以自己写�
 
 ### 真机验证
 
-（见下方记录，设备 S100V8H / Android 9 / 1280×800）
+设备 S100V8H / Android 9 / 1280×800，2026-11-24 实测（`XiaoheiOta` 日志 + `files/pet_ota.state.json`）：
+
+| 场景 | 操作 | 结果 |
+| --- | --- | --- |
+| 关于页与版本 | 控制页「版本 1.0 · 检查更新」→ 关于页 | 标题「小黑桌宠 / 版本 1.0」，更新行「正在检查新版本…」 |
+| 仓库还没发布 | 同上（此时 GitHub 上还没有这个仓库） | 12 条 manifest 候选全部 404 / 超时 →「所有线路都没拿到版本信息」+「重试」 |
+| 发布后走默认源 | 关于页「重试」 | `manifest candidates 12`，`winner [1] gh-proxy.com/... -> v1.0`（直连 API 这一秒稍慢，镜像抢先）→「✓ 已经是最新版」 |
+| 只留镜像前缀 | `files/ota.txt` 第一行 `https://gh-proxy.com/https://api.github.com/.../releases/latest` + `mirror: none` | `winner [0] gh-proxy.com/... -> v1.0`，同样「已经是最新版」 |
+| 发现新版 → 下载 → 校验 | 局域网假源 `{"version":"1.1","url":".../fake.apk","size":2097152}` | 状态 `available / 1.1`；点「现在更新」→ `dl [0] ok 2097152B in 0s` → `下载包校验不通过`（假包不是 APK）→ `error 下载失败，所有线路都不通` |
+| 附件线路 64KB 探测 | `curl -r 0-65535`（与 `OtaUpdater.probe()` 同逻辑） | 直连 `206 65536B 2.18s`；`gh-proxy.com` `206 3.09s`；`ghproxy.net` `206 11.4s`；`ghfast.top` 超时 |
+| raw 备用源 | `curl raw.githubusercontent.com/.../update.json` | 本机直连被重置（`HTTP 000`）；`gh-proxy.com` + raw `200 830B`，内容里 `size=108333167` |
+| 安装入口 | `pm query-activities -a android.intent.action.VIEW -t application/vnd.android.package-archive` | 系统有安装器 Activity，`ACTION_VIEW` 能解析；`ApkProvider` 以 `content://` 授权 |
+
+> **没做的一步**：没有让 1.0 真的覆盖安装 1.0（同版本系统只会当重装，108MB 走无线 adb 也慢）。
+> 安装环节已验证到「Intent 可解析 + 包名/版本/签名三重校验」，等下一个版本（`versionCode=110`）
+> 按同样流程点「现在更新」就能完成端到端验证。
+
+截图：`shots/ota-about.png`（关于页「已经是最新版」）、`shots/ota-control.png`（控制页版本行与状态行）。
+
+### 发布记录
+
+| 项 | 值 |
+| --- | --- |
+| 仓库 | <https://github.com/coolsmile1026/xiaohei-pet-android>（public，492 个文件，约 105MB，几乎全是 `assets/` 素材） |
+| Release | <https://github.com/coolsmile1026/xiaohei-pet-android/releases/tag/v1.0>（非 draft / 非 prerelease） |
+| 附件 | `xiaohei-pet-v1.0.apk`（108,333,167 B）+ `update.json`（830 B） |
+| `releases/latest` | `tag_name=v1.0`，assets 两个都在 |
+| 一键重发 | `./tools/release.sh --publish --no-build` |
+
+> 仓库和 Release 都是公开的，APK 里含原版立绘与音效，版权风险见第九章。要收回这些素材，
+> 把 `app/src/main/assets/web/assets/` 加进 `.gitignore` 并改用自建私有 OTA 源即可（客户端已支持 `files/ota.txt` 换源）。
