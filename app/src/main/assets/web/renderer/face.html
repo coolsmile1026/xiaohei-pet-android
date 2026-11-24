@@ -1,0 +1,29 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>大脸猫</title>
+<style>
+  html, body {
+    margin: 0; height: 100%; overflow: hidden;
+    background: #0b0b10; touch-action: none;
+    -webkit-user-select: none; user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  canvas { display: block; }
+  /* 退出：整块屏幕只剩这一颗按钮，做得尽量轻，不抢大脸的戏 */
+  #x {
+    position: fixed; right: 16px; bottom: 14px;
+    width: 56px; height: 56px; border-radius: 50%;
+    background: rgba(255,255,255,.05);
+    color: rgba(255,255,255,.30);
+    font: 300 32px/56px "PingFang SC", sans-serif; text-align: center;
+    cursor: pointer; transition: background .15s, color .15s;
+  }
+  #x:hover, #x:active { background: rgba(255,255,255,.14); color: rgba(255,255,255,.75); }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="x">×</div>
+<script src="face.js"></script>
+</body></html>

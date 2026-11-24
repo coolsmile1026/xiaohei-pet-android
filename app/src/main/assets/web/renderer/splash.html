@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>小黑</title>
+<style>
+  /* 开机先装新版时的提示窗（main.js showSplash）：右下角一张小卡片，写「小黑正在更新…」，不带按钮、不抢焦点。
+     样子照更新卡片（card.html）：奶白底深棕边、薄荷绿转圈 */
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: transparent; overflow: hidden; }
+  body { padding: 10px; font: 14px/1.6 "Microsoft YaHei UI", "Microsoft YaHei", sans-serif; color: #3B2A1E; user-select: none; }
+  .card { background: #FFFDF7; border: 2px solid #4A3424; border-radius: 16px; box-shadow: 0 4px 14px rgba(0,0,0,.22); padding: 12px 16px; display: flex; align-items: center; gap: 10px; }
+  img { width: 40px; height: 40px; flex: none; }
+  .title { font-size: 16px; font-weight: bold; line-height: 1.35; }
+  .sub { font-size: 12px; color: #8a7766; }
+  .spin { width: 16px; height: 16px; border: 2px solid #e5d8c6; border-top-color: #7DB873; border-radius: 50%; display: inline-block; vertical-align: -3px; margin-right: 6px; animation: r 0.8s linear infinite; }
+  @keyframes r { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="card"><img src="../assets/tray.png" alt=""><div><div class="title"><span class="spin"></span>小黑正在更新…</div><div class="sub">马上就好</div></div></div>
+</body>
+</html>

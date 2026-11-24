@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>小黑</title>
+<style>
+  /* 右下角小卡片：更新（检查中／下载中／已是最新／有新版本／正在安装／更新好了／出错）和开机自启询问。和小黑头顶气泡同一套颜色。
+     按钮照 Windows／Sparkle 的规矩：主按钮一个、放最右；「跳过这个版本」是弱化的文字按钮放最左 */
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: transparent; overflow: hidden; }
+  body { padding: 10px; font: 14px/1.6 "Microsoft YaHei UI", "Microsoft YaHei", sans-serif; color: #3B2A1E; user-select: none; }
+  .card { position: relative; background: #FFFDF7; border: 2px solid #4A3424; border-radius: 16px; box-shadow: 0 4px 14px rgba(0,0,0,.22); padding: 14px 16px 14px; animation: pop .16s ease-out; }
+  @keyframes pop { from { transform: translateY(8px) scale(.97); opacity: 0; } to { transform: none; opacity: 1; } }
+  .head { display: flex; align-items: center; gap: 10px; -webkit-app-region: drag; }
+  .head img { width: 40px; height: 40px; flex: none; }
+  .title { font-size: 16px; font-weight: bold; line-height: 1.35; }
+  .sub { font-size: 12px; color: #8a7766; }
+  .x { position: absolute; right: 8px; top: 6px; width: 26px; height: 26px; border: none; background: none; font-size: 18px; color: #8a7766; cursor: pointer; border-radius: 13px; -webkit-app-region: no-drag; }
+  .x:hover { background: #f1e9dc; }
+  .body { margin-top: 10px; }
+  ul { margin: 4px 0 0; padding-left: 20px; max-height: 380px; overflow-y: auto; }   /* 11-17 用户嫌更新说明小：190→380，字 15 */
+  li { margin: 2px 0; font-size: 15px; }
+  .hint { font-size: 12px; color: #8a7766; margin-top: 8px; }
+  .bar { height: 8px; background: #efe6d8; border-radius: 4px; overflow: hidden; margin: 8px 0 2px; }
+  .bar i { display: block; height: 100%; width: 0; background: #7DB873; transition: width .3s; }
+  .spin { width: 16px; height: 16px; border: 2px solid #e5d8c6; border-top-color: #7DB873; border-radius: 50%; display: inline-block; vertical-align: -3px; margin-right: 6px; animation: r 0.8s linear infinite; }
+  @keyframes r { to { transform: rotate(360deg); } }
+  .foot { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+  .foot:empty { display: none; }
+  button.b { font: inherit; padding: 5px 16px; border: 1.5px solid #4A3424; border-radius: 16px; background: #fff; color: #3B2A1E; cursor: pointer; }
+  button.b:hover { background: #f7f0e4; }
+  /* 主按钮用小黑耳朵里的薄荷绿（第一部电影），深绿字；其余跟气泡一样奶白底深棕边 */
+  button.b.main { background: #A6D29A; border-color: #4E8A4A; color: #1F3A1D; font-weight: bold; }
+  button.b.main:hover { background: #95C688; }
+  .foot .skip { margin-right: auto; border: none; background: none; padding: 5px 2px; font: inherit; font-size: 12px; color: #8a7766; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+  .foot .skip:hover { color: #3B2A1E; }
+</style>
+</head>
+<body>
+<div class="card" id="card">
+  <button class="x" id="x" title="关闭">×</button>
+  <div class="head"><img src="../assets/tray.png" alt=""><div><div class="title" id="title"></div><div class="sub" id="sub"></div></div></div>
+  <div class="body" id="body"></div>
+  <div class="foot" id="foot"></div>
+</div>
+<script>
+const { ipcRenderer } = require('electron');
+const $ = (id) => document.getElementById(id);
+const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const btn = (text, what, main) => `<button class="b${main ? ' main' : ''}" data-do="${what}">${text}</button>`;
+const notes = (n) => `<div>更新了什么：</div><ul>${(n && n.length ? n : ['修了一些小问题，更稳定了']).map((l) => `<li>${esc(l)}</li>`).join('')}</ul>`;
+let autoClose;
+function show(s) {
+  clearTimeout(autoClose);
+  let title = '', sub = '', body = '', foot = '';
+  if (s.kind === 'checking') { title = '<span class="spin"></span>正在检查新版本…'; sub = `现在是 ${s.current}`; }
+  else if (s.kind === 'downloading') {
+    title = `发现新版本 ${esc(s.version)}`; sub = `现在是 ${s.current}`;
+    body = `<div>正在下载… <b>${s.percent || 0}%</b></div><div class="bar"><i style="width:${s.percent || 0}%"></i></div><div class="hint">大约 170M。你可以先关掉这张卡片，下好了我会告诉你。</div>`;
+    foot = btn('好的', 'close');
+  } else if (s.kind === 'latest') {
+    title = '已经是最新版啦'; sub = `现在是 ${s.current}`; foot = btn('知道了', 'close', true);
+    autoClose = setTimeout(() => ipcRenderer.send('card-do', 'close'), 5000);
+  } else if (s.kind === 'ready' || s.kind === 'available') {
+    title = `小黑有新版本 ${esc(s.version)}`; sub = `现在是 ${s.current}`;
+    const how = s.kind === 'available' ? '点「现在更新」先下载（约 170M），下好自己装，十几秒。' : '更新只要十几秒。';
+    const later = s.auto ? '不点也行，退出小黑或下次打开时会自动装好。' : '你关了自动更新，不点就不会装。';
+    body = notes(s.notes) + `<div class="hint">${how}设置都会保留。${later}</div>`;
+    foot = '<button class="skip" data-do="skip">跳过这个版本</button>' + btn('以后再说', 'later') + btn('现在更新', 'install', true);
+  } else if (s.kind === 'installing') { // 先说再走：不带按钮，1.5 秒后小黑退出去装
+    title = `<span class="spin"></span>正在安装 ${esc(s.version)}`; sub = `现在是 ${s.current}`; body = '十几秒后小黑自己回来';
+  } else if (s.kind === 'updated') {
+    title = `小黑更新到 ${esc(s.version)} 啦`; body = notes(s.notes);
+    foot = ((s.notes || []).some((l) => /找文件/.test(l)) ? btn('试试找文件', 'finder') : '') + btn('知道了', 'close', true);   // 11-05：说明里有找文件就给个按钮当场试
+  } else if (s.kind === 'error') {
+    if (s.why === 'verify') { title = '新版本没通过安全校验'; body = '为了安全，这次没有安装。过一会儿我会自己再试。'; foot = btn('知道了', 'close', true); }
+    else { title = '检查更新失败'; body = '连不上更新服务器。请检查网络后再试。'; foot = btn('关闭', 'close') + btn('重试', 'retry', true); }
+  } else if (s.kind === 'login') {
+    title = '每次开机都叫小黑出来吗？'; body = '以后想改：右键右下角托盘里的小黑图标 →「设置」→「开机自动启动」。';
+    foot = btn('先不用', 'close') + btn('好呀', 'login-yes', true);
+  }
+  $('title').innerHTML = title; $('sub').textContent = sub; $('body').innerHTML = body; $('foot').innerHTML = foot;
+  requestAnimationFrame(() => ipcRenderer.send('card-size', document.body.scrollHeight));
+}
+ipcRenderer.invoke('card-state').then(show);
+ipcRenderer.on('card', async () => show(await ipcRenderer.invoke('card-state')));
+$('foot').onclick = (e) => { const b = e.target.closest('button'); if (b) ipcRenderer.send('card-do', b.dataset.do); };
+$('x').onclick = () => ipcRenderer.send('card-do', 'close');
+addEventListener('keydown', (e) => { if (e.key === 'Escape') ipcRenderer.send('card-do', 'close'); });
+</script>
+</body>
+</html>

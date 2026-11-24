@@ -1,0 +1,66 @@
+/* 开发版新右键菜单的样式（11-13 重写）：照演示页 mockup/v332fan/index.html 的「层次版」。放在 Shadow DOM 里，不碰桌宠页自己的样式。
+   --s 是整体缩放（JS 里的 S，设在 .fan 上），底板里的尺寸都是「效果图像素 × --s」。 */
+*{box-sizing:border-box}
+.mroot{position:fixed;inset:0;font:15px/1.4 "Microsoft YaHei UI","PingFang SC",sans-serif;color:#222;user-select:none;-webkit-user-select:none;cursor:default}
+.fan{position:absolute;inset:0}
+
+/* ---------- 主圈：效果图上原样抠下来的 7 张贴纸；没有现成图的格子用 .css 画一张 ---------- */
+.mk{position:absolute;cursor:pointer;transform-origin:50% 50%;z-index:2;filter:drop-shadow(0 3px 4px rgba(40,60,40,.22));
+    transition:transform .14s ease-out,opacity .16s,filter .16s}
+.mk>img{width:100%;height:100%;display:block;pointer-events:none}
+.mk:hover,.mk.cur{transform:scale(1.07);z-index:5}
+.mk.dim{opacity:.62;filter:grayscale(.35) drop-shadow(0 2px 3px rgba(0,0,0,.25));transform:scale(.94)}   /* 11-14：原来 .38 在花背景上几乎看不见 */
+.mk.cur.lift{transform:scale(1.1);filter:drop-shadow(0 6px 8px rgba(40,60,40,.32));z-index:6}
+.pop{animation:pop .12s ease-out}
+@keyframes pop{from{opacity:.2;transform:scale(.8)}}
+/* 操作提示小键帽（双击、按住 1 秒）：照「找文件」上 Ctrl 的样子，贴在贴纸右下角，角度和贴纸一起歪（JS 里设 transform） */
+.mk .chip{position:absolute;right:calc(14px*var(--s));bottom:calc(-4px*var(--s));font:700 calc(22px*var(--s))/16px "Microsoft YaHei UI","PingFang SC",sans-serif;font-style:normal;white-space:nowrap;
+          color:#2b1d12;background:#fffaf0;border:1.5px solid #3b2a1e;border-radius:5px;padding:0 4px;box-shadow:0 1.5px 0 #3b2a1e;pointer-events:none}
+/* 11-24：键帽提示一律不显示。这些是 Windows 版的操作说明（双击／按住 1 秒／Ctrl / Ctrl／中键），
+   手机上根本没有鼠标和键盘，留着只会让人以为要那样点。三处都藏掉：主圈贴纸右下角的 chip、
+   贴在贴纸里的 .ks 小键帽组、二级格子右上角的 .kcs。
+   注意：这条必须写在 .ks / .kcs 的 display:flex 之后，同优先级下后写的才赢（原来放在定义前面，被覆盖了）。*/
+.mk .dot{position:absolute;right:calc(14px*var(--s));top:calc(4px*var(--s));width:calc(34px*var(--s));height:calc(34px*var(--s));border-radius:50%;background:#e5534b;border:calc(5px*var(--s)) solid #fff;pointer-events:none}
+/* CSS 画的贴纸：外框和原贴纸一样大，里面一个转过的胶囊（转在里面，不和 hover／抬起的缩放打架） */
+.mk.css{display:flex;align-items:center;justify-content:center}
+.mk .cs{flex:none;display:flex;align-items:center;justify-content:center;gap:calc(8px*var(--s));white-space:nowrap;
+        background:var(--c);border:calc(7px*var(--s)) solid #fff;border-radius:999px;color:#2b1d12;font-weight:900;letter-spacing:.02em;font-size:calc(40px*var(--s))}
+.mk .cs img,.mk .cs .gl{flex:none;display:block;object-fit:contain}
+.mk .cs .gl{display:flex;align-items:center;justify-content:center;border-radius:50%;background:#fff;color:#2b1d12;font-size:.8em;line-height:1}
+.mk .cs .tx{display:flex;flex-direction:column;align-items:center;gap:calc(4px*var(--s))}
+.mk .cs .ks{display:flex;gap:calc(3px*var(--s))}
+.mk .cs .ar{font-size:1.1em;margin-left:calc(6px*var(--s))}
+.mk .cs .kc{font:700 calc(19px*var(--s))/15px "Microsoft YaHei UI","PingFang SC",sans-serif;font-style:normal;color:#2b1d12;background:#fffaf0;border:1.5px solid #3b2a1e;border-radius:5px;padding:0 3px;box-shadow:0 1.5px 0 #3b2a1e}
+
+/* ---------- 二级：图标格子（11-13 用户选的 B3：每格一张小圆贴纸；11-14 后面加回一块半透明奶白板，见下；比稿在 mockup/v570menulook）----------
+   格子按 --cols 列排齐、不分组不画线；每格是一张厚白边、轻阴影的小圆贴纸（颜色每格不同，JS 里 PADCOL／PAL 给 --pc），字在下面一粒白药丸；
+   鼠标停上去那张圆贴纸放大一点。
+   --s 是整体缩放（JS 里的 S，设在 .fan 上），这里的尺寸都是「效果图像素 × --s」。 */
+.sheet{position:absolute;z-index:9;box-sizing:border-box;font-size:calc(26px*var(--s))}
+/* 格子后面垫一块半透明奶白板、把背后糊掉（11-14 用户选的 ②）：没有底板时，背后是文字、图片就看不清格子 */
+.sheet{background:rgba(255,250,243,.80);backdrop-filter:blur(10px);border-radius:22px;padding:12px 10px;
+  box-shadow:0 0 0 1px rgba(90,60,30,.12),0 12px 28px rgba(40,30,20,.22)}
+.sheet .cols{display:grid;gap:calc(10px*var(--s)) calc(6px*var(--s))}
+.sheet .it{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:calc(6px*var(--s));
+  min-width:calc(140px*var(--s));padding:calc(4px*var(--s)) 0;color:#2b1d12;font-size:calc(24px*var(--s));white-space:nowrap;cursor:pointer}
+.sheet .ig{display:block;position:relative;flex:none;width:calc(112px*var(--s));height:calc(112px*var(--s));border-radius:50%;background:var(--pc,#f7b777);
+  border:calc(8px*var(--s)) solid #fff;box-shadow:0 4px 9px rgba(40,30,20,.26);transition:transform .12s}
+.sheet .ig img{position:relative;width:100%;height:100%;border-radius:50%;object-fit:contain;transform:scale(var(--fs,1)) translate(var(--fx,0),var(--fy,0))}
+.sheet .it:not(.dis):hover .ig{transform:scale(1.1)}
+.sheet .it:not(.dis):active{transform:scale(.97)}
+.sheet .it>span:not(.ig),.sheet .it small{background:#fff;border-radius:999px;box-shadow:0 2px 5px rgba(40,30,20,.20)}
+.sheet .it>span:not(.ig){padding:calc(3px*var(--s)) calc(14px*var(--s));font-weight:700;font-size:calc(22px*var(--s))}
+.sheet .it small{display:block;font-size:.85em;font-weight:600;color:#9a8b7c;line-height:1.1;padding:0 calc(10px*var(--s))}
+.sheet .it.dis{cursor:default}
+/* 格子的键帽（绑了键才有）：贴圆图标右上角、小号，不占名字和 sub 那两行；照主圈贴纸上键帽的样子 */
+.sheet .it .kcs{position:absolute;top:calc(-2px*var(--s));left:calc(50% + 34px*var(--s));display:flex;flex-wrap:wrap;max-width:calc(84px*var(--s));gap:calc(2px*var(--s));pointer-events:none}
+.sheet .it .kc{font:700 calc(15px*var(--s))/calc(17px*var(--s)) "Microsoft YaHei UI","PingFang SC",sans-serif;font-style:normal;color:#2b1d12;background:#fffaf0;border:1px solid #3b2a1e;border-radius:4px;padding:0 calc(4px*var(--s));box-shadow:0 1px 0 #3b2a1e}
+.sheet .it.dis .ig{background:#d9d4cd;filter:grayscale(1)}
+.sheet .it.dis img{opacity:.35}
+.sheet .it .nd{position:absolute;right:calc(30px*var(--s));top:calc(4px*var(--s));z-index:3;width:calc(18px*var(--s));height:calc(18px*var(--s));border-radius:50%;background:#e5534b;border:2px solid #fff;pointer-events:none}   /* 新版本的小红点：照主圈 .dot 缩小 */
+/* 「更多」最底下两颗小胶囊：完整菜单…、退出 */
+/* 肚子页：整个换掉格子——顶上一行（返回键 名字 大小·提示）、文件行、最下面两颗按钮；奶白底板，宽度跟内容走 */
+  box-shadow:0 0 0 1px rgba(90,60,30,.10),0 12px 28px rgba(40,30,20,.16),0 2px 6px rgba(40,30,20,.10)}
+/* 小尖角指回主贴纸（只有肚子页的底板用） */
+/* 键帽提示统一关掉（放文件末尾，压住上面 .ks/.kcs 的 display:flex） */
+.mk .chip,.mk .cs .ks,.sheet .it .kcs{display:none!important}

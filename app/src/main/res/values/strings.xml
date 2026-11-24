@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">小黑桌宠</string>
+    <string name="start_pet">召唤小黑</string>
+    <string name="stop_pet">收起</string>
+    <string name="grant_overlay">授予悬浮窗权限</string>
+    <string name="keep_alive_setting">常驻设置：省电白名单 / 自启动</string>
+    <string name="keep_alive_hint">默认开机自启并常驻：前台服务 + 5 分钟心跳保活。\n部分手机还需在「自启动管理」里允许小黑；点「收起」会连开机自启一起关掉。</string>
+    <string name="launcher_hint">把 Windows 版《小黑桌宠》的渲染层原样搬过来：分层立绘、动作、表情都是它自己的代码在画。\n点他互动，长按出菜单。</string>
+    <string name="status_on">小黑已在桌面上</string>
+    <string name="status_off">小黑还没出来</string>
+    <string name="overlay_hint">需要「显示在其他应用上层」权限，小黑才能浮在桌面上</string>
+    <string name="notif_title">小黑在桌面上</string>
+    <string name="notif_text">点这里回到控制页</string>
+    <string name="dock_a11y_label">小黑 · dock 图标识别</string>
+    <string name="dock_a11y_desc">只读取 Aerial 屏保桌面（app.orchard.tv）底部 dock 图标的位置与名称，让小猫形态准确站在 dock 上沿。不点击、不输入、不读取其它应用的内容。</string>
+    <string name="dock_a11y_off">无障碍识别：未开启（点此开启）</string>
+    <string name="dock_a11y_on">无障碍识别：已开启（点此管理）</string>
+    <string name="dock_a11y_hint">请在系统设置的「无障碍 / 辅助功能」里打开「小黑 · dock 图标识别」；若本机 ROM 没有这个入口，用 README 里的 adb 命令开启</string>
+</resources>

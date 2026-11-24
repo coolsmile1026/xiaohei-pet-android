@@ -1,0 +1,12 @@
+{
+ "w": 126.54012654012652,
+ "h": 214.66666666666666,
+ "dx": -82.64735264735265,
+ "dy": -208.43589743589746,
+ "fps": 24,
+ "frames": 250,
+ "note": "css px: video element left = Pet.x + dx, top = Pet.y + dy, width = w, height = h",
+ "commit": 10.375,
+ "start": 0.2917,
+ "end": 10.1667
+}

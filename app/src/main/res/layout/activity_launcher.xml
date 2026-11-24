@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FF15171B"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:paddingLeft="72dp"
+        android:paddingRight="72dp"
+        android:paddingTop="56dp"
+        android:paddingBottom="56dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/app_name"
+            android:textColor="#FFF2F4F7"
+            android:textSize="30sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:lineSpacingExtra="6dp"
+            android:text="@string/launcher_hint"
+            android:textColor="#FF9AA1AB"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="34dp"
+            android:lineSpacingExtra="5dp"
+            android:text="@string/status_off"
+            android:textColor="#FF94FF00"
+            android:textSize="15sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="26dp"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/startBtn"
+                android:layout_width="0dp"
+                android:layout_height="56dp"
+                android:layout_weight="1"
+                android:background="@drawable/btn_primary"
+                android:text="@string/start_pet"
+                android:textAllCaps="false"
+                android:textColor="#FF101215"
+                android:textSize="17sp" />
+
+            <Button
+                android:id="@+id/stopBtn"
+                android:layout_width="0dp"
+                android:layout_height="56dp"
+                android:layout_marginLeft="14dp"
+                android:layout_weight="1"
+                android:background="@drawable/btn_ghost"
+                android:text="@string/stop_pet"
+                android:textAllCaps="false"
+                android:textColor="#FFD6DAE0"
+                android:textSize="17sp" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/formBtn"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="14dp"
+            android:background="@drawable/btn_ghost"
+            android:text="切换形态（人 / 猫）"
+            android:textAllCaps="false"
+            android:textColor="#FFD6DAE0"
+            android:textSize="15sp" />
+
+        <Button
+            android:id="@+id/soundBtn"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="14dp"
+            android:background="@drawable/btn_ghost"
+            android:text="音效：开（点此静音）"
+            android:textAllCaps="false"
+            android:textColor="#FFD6DAE0"
+            android:textSize="15sp" />
+
+        <!-- 小猫音量：紧挨着声音开关，−/＋ 调档，点中间数字试听 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/volDownBtn"
+                android:layout_width="72dp"
+                android:layout_height="48dp"
+                android:background="@drawable/btn_ghost"
+                android:text="−"
+                android:textAllCaps="false"
+                android:textColor="#FFD6DAE0"
+                android:textSize="22sp" />
+
+            <TextView
+                android:id="@+id/volText"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:clickable="true"
+                android:gravity="center"
+                android:text="小猫音量：100%（点此试听）"
+                android:textColor="#FF94FF00"
+                android:textSize="14sp" />
+
+            <Button
+                android:id="@+id/volUpBtn"
+                android:layout_width="72dp"
+                android:layout_height="48dp"
+                android:background="@drawable/btn_ghost"
+                android:text="＋"
+                android:textAllCaps="false"
+                android:textColor="#FFD6DAE0"
+                android:textSize="22sp" />
+        </LinearLayout>
+
+        <!-- dock 上沿：猫形态专用地面。−/＋ 调落脚微调，点中间文字重扫 dock 图标 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="10dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/dockBtn"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:background="@drawable/btn_ghost"
+                android:text="贴 dock：开"
+                android:textAllCaps="false"
+                android:textColor="#FFD6DAE0"
+                android:textSize="14sp" />
+
+            <Button
+                android:id="@+id/dockDownBtn"
+                android:layout_width="58dp"
+                android:layout_height="48dp"
+                android:layout_marginLeft="8dp"
+                android:background="@drawable/btn_ghost"
+                android:text="−"
+                android:textAllCaps="false"
+                android:textColor="#FFD6DAE0"
+                android:textSize="22sp" />
+
+            <TextView
+                android:id="@+id/dockText"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:clickable="true"
+                android:gravity="center"
+                android:text="等待识别（点此重扫）"
+                android:textColor="#FF94FF00"
+                android:textSize="13sp" />
+
+            <Button
+                android:id="@+id/dockUpBtn"
+                android:layout_width="58dp"
+                android:layout_height="48dp"
+                android:background="@drawable/btn_ghost"
+                android:text="＋"
+                android:textAllCaps="false"
+                android:textColor="#FFD6DAE0"
+                android:textSize="22sp" />
+        </LinearLayout>
+
+        <!-- 真识别 dock 图标需要无障碍权限；点此直接进系统无障碍设置 -->
+        <Button
+            android:id="@+id/a11yBtn"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/btn_ghost"
+            android:text="@string/dock_a11y_off"
+            android:textAllCaps="false"
+            android:textColor="#FF94FF00"
+            android:textSize="14sp" />
+
+        <!-- OTA：点此打开关于页并联网查更新（镜像代理自动选线），状态在上方状态框里 -->
+        <Button
+            android:id="@+id/otaBtn"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/btn_ghost"
+            android:text="版本 1.0 · 检查更新（点此）"
+            android:textAllCaps="false"
+            android:textColor="#FF94FF00"
+            android:textSize="14sp" />
+
+        <Button
+            android:id="@+id/permBtn"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="14dp"
+            android:background="@drawable/btn_ghost"
+            android:text="@string/grant_overlay"
+            android:textAllCaps="false"
+            android:textColor="#FFD6DAE0"
+            android:textSize="15sp" />
+
+        <Button
+            android:id="@+id/keepBtn"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="14dp"
+            android:background="@drawable/btn_ghost"
+            android:text="@string/keep_alive_setting"
+            android:textAllCaps="false"
+            android:textColor="#FFD6DAE0"
+            android:textSize="15sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:lineSpacingExtra="4dp"
+            android:text="@string/keep_alive_hint"
+            android:textColor="#FF9AA1AB"
+            android:textSize="12sp" />
+
+    </LinearLayout>
+</ScrollView>

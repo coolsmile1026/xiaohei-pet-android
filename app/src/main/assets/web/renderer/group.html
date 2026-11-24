@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>进群</title>
+<script src="pageshim.js"></script>
+<style>
+  /* 「进群」单独一页：只放小黑的家（群二维码 + 群号复制）。
+     配色、圆角、描边、按钮沿用 about.html，三张卡片一眼是同一套。 */
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: transparent; }
+  body { padding: 10px; font: 14px/1.6 "Microsoft YaHei UI", "Microsoft YaHei", sans-serif; color: #3B2A1E; user-select: none; }
+  .card { position: relative; background: #FFFDF7; border: 2px solid #4A3424; border-radius: 16px; box-shadow: 0 4px 14px rgba(0,0,0,.22); padding: 16px 18px 10px; }
+  .head { display: flex; align-items: center; gap: 12px; }
+  .head img { width: 52px; height: 52px; flex: none; }
+  .name { font-size: 18px; font-weight: bold; line-height: 1.3; }
+  .ver { font-size: 12px; color: #8a7766; }
+  .x { position: absolute; right: 8px; top: 6px; width: 26px; height: 26px; border: none; background: none; font-size: 18px; color: #8a7766; cursor: pointer; border-radius: 13px; }
+  .x:hover { background: #f1e9dc; }
+  .sec { margin-top: 8px; padding-top: 6px; border-top: 1px solid #eadfcf; }
+  .muted { color: #8a7766; font-size: 12px; }
+  .author { font-size: 12.5px; color: #5b4a3c; }
+  .foot { display: flex; justify-content: flex-end; margin-top: 10px; }
+  button.b { flex: none; font: inherit; font-size: 13px; padding: 3px 14px; border: 1.5px solid #4A3424; border-radius: 15px; background: #fff; color: #3B2A1E; cursor: pointer; }
+  button.b.main { background: #A6D29A; border-color: #4E8A4A; color: #1F3A1D; font-weight: bold; }
+  .gnotice { font-size: 13px; color: #3f7a3b; margin-bottom: 6px; }
+  .gc { display: flex; gap: 12px; align-items: center; background: #fff; border: 1px solid #e6e6e6; border-radius: 10px; padding: 8px; margin-top: 6px; }
+  .gc:first-child { margin-top: 0; }
+  .gc .qr { flex: none; width: 96px; height: 96px; padding: 3px; background: #fff; }
+  .gc .gq { flex: 1; }
+  .gc .gn { font-size: 14px; font-weight: bold; color: #222; }
+  .gc .gd, .gc .tip { font-size: 12px; color: #8a8a8a; line-height: 1.4; margin-top: 3px; }
+  .gc .gd b { color: #3B2A1E; font-size: 14px; user-select: text; }
+  .gqrs { display: flex; gap: 10px; }
+  .gqrs:not(:first-child) { margin-top: 8px; }
+  .gc.gcv { flex: 1; flex-direction: column; align-items: center; text-align: center; margin-top: 0; }
+  .gfull { font-size: 13px; color: #5b4a3c; }
+</style>
+</head>
+<body>
+<div class="card">
+  <button class="x" data-do="close" title="关闭">×</button>
+  <div class="head">
+    <img src="../assets/tray.png" alt="">
+    <div>
+      <div class="name">小黑的家</div>
+      <div class="ver">扫码进群，或者复制群号</div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div id="groups"></div>
+    <div class="muted" style="margin-top:6px">官方群只有上面这些。有人卖小黑，就是骗你的。</div>
+  </div>
+
+  <div class="sec">
+    <div class="author" id="author"></div>
+  </div>
+
+  <div class="foot"><button class="b main" data-do="close">知道了</button></div>
+</div>
+<script src="groupcard.js"></script>
+<script>
+const { ipcRenderer } = require('electron');
+const $ = (id) => document.getElementById(id);
+const esc = (t) => String(t == null ? '' : t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+function sendSize() {
+  requestAnimationFrame(() => ipcRenderer.send('welcome-size', Math.ceil(document.body.getBoundingClientRect().height)));
+}
+
+function show(s) {
+  const st = s || {};
+  const a = st.author || {};
+  $('author').innerHTML = a.name ? `作者 ${esc(a.name)}　微信 ${esc(a.wechat)}　QQ ${esc(a.qq)}` : '';
+  renderGroups($('groups'), st, st.visible || []);
+  sendSize();
+}
+
+ipcRenderer.invoke('groups-state').then(show);
+ipcRenderer.on('welcome', (_e, s) => show(s));
+
+document.body.addEventListener('click', (e) => {
+  if (e.target.closest('[data-do]')) ipcRenderer.send('welcome-do', 'close');
+});
+addEventListener('keydown', (e) => { if (e.key === 'Escape') ipcRenderer.send('welcome-do', 'close'); });
+
+sendSize();
+</script>
+</body>
+</html>

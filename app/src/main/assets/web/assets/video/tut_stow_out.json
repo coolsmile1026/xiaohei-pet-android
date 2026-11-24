@@ -1,0 +1,10 @@
+{
+ "w": 71.0,
+ "h": 85.0,
+ "dx": -35.0,
+ "dy": -83.0,
+ "fps": 24,
+ "frames": 35,
+ "duration": 1.458,
+ "note": "11-09 教程用新猫（mockup/v481tutorial 真 renderer 逐帧录）；css px: video left = 锚点x + dx, top = 锚点y + dy, width = w, height = h；锚点＝猫坐着时两脚底中心"
+}

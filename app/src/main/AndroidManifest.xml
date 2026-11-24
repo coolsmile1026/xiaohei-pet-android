@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- 常驻：申请忽略电池优化、精确闹钟心跳、Android 13+ 的前台服务通知 -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- OTA：下载好的 APK 要交给系统安装器（Android 8+ 需要声明才能请求安装） -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+
+    <application
+        android:allowBackup="true"
+        android:hardwareAccelerated="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:usesCleartextTraffic="true"
+        android:theme="@style/Theme.Xiaohei">
+
+        <activity
+            android:name=".PetLauncherActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:screenOrientation="landscape"
+            android:configChanges="orientation|screenSize|keyboardHidden">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <service
+            android:name=".PetService"
+            android:exported="false"
+            android:process=":pet" />
+
+        <!-- 真识别 Aerial dock 图标：必须 exported + BIND_ACCESSIBILITY_SERVICE 才能被系统绑定。
+             和舞台放在同一个 :pet 进程，识别结果直接同进程通知，不绕广播。 -->
+        <service
+            android:name=".DockWatchService"
+            android:exported="true"
+            android:label="@string/dock_a11y_label"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
+            android:process=":pet">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/dock_accessibility" />
+        </service>
+
+        <!-- OTA 下载的 APK 用 content:// 交给系统安装器；不 exported，只靠 Intent 临时授权 -->
+        <provider
+            android:name=".ApkProvider"
+            android:authorities="com.deepfish.xiaohei.apk"
+            android:exported="false"
+            android:grantUriPermissions="true" />
+
+        <receiver
+            android:name=".BootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.USER_UNLOCKED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="com.deepfish.xiaohei.BOOT_PROBE" />
+            </intent-filter>
+        </receiver>
+
+    </application>
+
+</manifest>

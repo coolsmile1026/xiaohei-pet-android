@@ -1,0 +1,22 @@
+# Gradle / IDE
+.gradle/
+.idea/
+build/
+app/build/
+captures/
+*.iml
+local.properties
+
+# macOS
+.DS_Store
+
+# 真机验证截图：仓库只保留 README 里引用的几张（首次提交用 git add -f 加）
+shots/
+
+# 发版产物 / 临时包
+dist/
+*.apk
+*.apk.part
+
+# 设备上的 OTA 换源覆盖文件不该进仓库（本机调试用）
+ota.txt

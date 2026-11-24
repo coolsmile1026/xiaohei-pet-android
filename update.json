@@ -1,0 +1,8 @@
+{
+  "version": "1.0",
+  "url": "https://github.com/coolsmile1026/xiaohei-pet-android/releases/download/v1.0/xiaohei-pet-v1.0.apk",
+  "notes": "小黑桌宠 Android 移植版 v1.0（首个正式版本）\n\n- 桌面版渲染层完整移植：猫 / 人双形态、动作菜单、拖拽与网格、原版音效\n- 电视常驻：开机自启、前台服务、AlarmManager 心跳、省电白名单入口\n- 大脸猫全屏模式：14 种表情连续渐变、点击随机切换、红色心跳爱心\n- 无障碍真识别 Aerial dock 图标，猫形态沿 dock 上沿活动\n- 新增 OTA 自更新：GitHub Releases + 镜像代理竞速下载\n\n国内网络下载走内置镜像前缀自动选线，也可以在设备上放 files/ota.txt 换源。",
+  "size": 108333167,
+  "minSdk": 26,
+  "repo": "coolsmile1026/xiaohei-pet-android"
+}

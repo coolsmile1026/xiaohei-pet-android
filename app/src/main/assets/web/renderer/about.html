@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<script src="pageshim.js"></script>
+<title>关于小黑</title>
+<style>
+  /* 关于小黑：版本、更新、怎么玩，一页看全（照 Chrome「关于」页：打开就查更新，状态和按钮就在这里）。
+     颜色跟头顶气泡、更新卡片一套：奶白底深棕边，主按钮用小黑耳朵里的薄荷绿 */
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: transparent; }
+  body { padding: 10px; font: 14px/1.6 "Microsoft YaHei UI", "Microsoft YaHei", sans-serif; color: #3B2A1E; user-select: none; }
+  .card { position: relative; background: #FFFDF7; border: 2px solid #4A3424; border-radius: 16px; box-shadow: 0 4px 14px rgba(0,0,0,.22); padding: 16px 18px 14px; }
+  .head { display: flex; align-items: center; gap: 12px; -webkit-app-region: drag; }
+  .head img { width: 52px; height: 52px; flex: none; }
+  .name { font-size: 18px; font-weight: bold; line-height: 1.3; }
+  .ver { font-size: 12px; color: #8a7766; }
+  .demo { display: inline-block; margin-left: 6px; padding: 0 6px; border-radius: 8px; background: #f1e9dc; color: #8a7766; font-size: 11px; }
+  .x { position: absolute; right: 8px; top: 6px; width: 26px; height: 26px; border: none; background: none; font-size: 18px; color: #8a7766; cursor: pointer; border-radius: 13px; -webkit-app-region: no-drag; }
+  .x:hover { background: #f1e9dc; }
+  .sec { margin-top: 8px; padding-top: 6px; border-top: 1px solid #eadfcf; }
+  .row { display: flex; align-items: center; gap: 8px; min-height: 30px; }
+  .k { flex: none; width: 52px; color: #8a7766; font-size: 13px; }
+  .v { flex: 1; }
+  .ok { color: #3f7a3b; }
+  .new { font-weight: bold; }
+  .muted { color: #8a7766; font-size: 12px; }
+  label.chk { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #5b4a3c; cursor: pointer; margin-left: 60px; }
+  label.chk input { accent-color: #5EA85A; width: 15px; height: 15px; margin: 0; }
+  ul { margin: 2px 0 0; padding-left: 18px; font-size: 13px; color: #5b4a3c; }
+  li { margin: 0; }
+  .spin { width: 14px; height: 14px; border: 2px solid #e5d8c6; border-top-color: #7DB873; border-radius: 50%; display: inline-block; vertical-align: -2px; margin-right: 6px; animation: r 0.8s linear infinite; }
+  @keyframes r { to { transform: rotate(360deg); } }
+  button.b { flex: none; font: inherit; font-size: 13px; padding: 3px 14px; border: 1.5px solid #4A3424; border-radius: 15px; background: #fff; color: #3B2A1E; cursor: pointer; }
+  button.b:hover { background: #f7f0e4; }
+  button.b.main { background: #A6D29A; border-color: #4E8A4A; color: #1F3A1D; font-weight: bold; }
+  button.b.main:hover { background: #95C688; }
+  .foot { display: flex; justify-content: flex-end; margin-top: 12px; }
+  /* 下载进度：细条，薄荷绿，和更新卡片一套 */
+  .bar { height: 5px; background: #efe6d8; border-radius: 3px; overflow: hidden; margin: 4px 0 2px; }
+  .bar i { display: block; height: 100%; width: 0; background: #7DB873; transition: width .3s; }
+  .link { border: none; background: none; padding: 0; font: inherit; font-size: 12px; color: #8a7766; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+  .link:hover { color: #3B2A1E; }
+  .gnotice { font-size: 13px; color: #3f7a3b; margin-bottom: 6px; }
+  .gc { display: flex; gap: 12px; align-items: center; background: #fff; border: 1px solid #e6e6e6; border-radius: 10px; padding: 10px; margin-top: 8px; }
+  .gc:first-child { margin-top: 0; }
+  .gc .qr { flex: none; width: 108px; height: 108px; padding: 3px; background: #fff; }
+  .gc .gq { flex: 1; }
+  .gc .gn { font-size: 14px; font-weight: bold; color: #222; }
+  .gc .gd, .gc .tip { font-size: 12px; color: #8a8a8a; line-height: 1.4; margin-top: 3px; }
+  .gc .gd b { color: #3B2A1E; font-size: 14px; user-select: text; }
+  .gqrs { display: flex; gap: 10px; }
+  .gqrs:not(:first-child) { margin-top: 8px; }
+  .gc.gcv { flex: 1; flex-direction: column; align-items: center; text-align: center; margin-top: 0; }
+  .gfull { font-size: 13px; color: #5b4a3c; }
+</style>
+</head>
+<body>
+<div class="card">
+  <button class="x" data-do="close" title="关闭">×</button>
+  <div class="head"><img src="../assets/tray.png" alt=""><div><div class="name">小黑桌宠</div><div class="ver" id="ver"></div></div></div>
+  <div class="sec">
+    <div class="row"><span class="k">更新</span><span class="v" id="upd"></span><span id="updBtn"></span></div>
+    <label class="chk" id="autoRow"><input type="checkbox" id="auto">自动检查更新（后台下好新版，安装仍需你确认）</label>
+  </div>
+  <div class="sec">
+    <div class="row" style="align-items:flex-start"><span class="k">作者</span><span class="v" id="author"></span></div>
+  </div>
+  <div class="sec">
+    <div class="muted">「罗小黑」角色版权归北京寒木春华动画技术有限公司所有。</div>
+    <div class="muted">桌面版由作者个人制作，永久免费；这个手机版是照着它复刻的。</div>
+  </div>
+  <div class="foot"><button class="b main" data-do="close">知道了</button></div>
+</div>
+<script>
+const { ipcRenderer } = require('electron');
+const $ = (id) => document.getElementById(id);
+const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const btn = (text, what, main) => `<button class="b${main ? ' main' : ''}" data-do="${what}">${text}</button>`;
+function show(s) {
+  $('ver').innerHTML = `版本 ${esc(s.version)}` + (s.tag ? ` ${esc(s.tag)}` : '') + (s.demo ? ' <span class="demo">开发版演示：更新是样子，不联网不真装</span>' : '');
+  // 更新：打开「关于」时主进程会顺手查一次
+  const u = s.update || {};
+  let t = '', b = '';
+  if (!s.hasUpdater) t = '<span class="muted">手机版不检查更新，新版本会发在群里</span>';
+  else if (u.kind === 'checking') t = '<span class="spin"></span>正在检查新版本…';
+  else if (u.kind === 'downloading') t = `正在下载 ${esc(u.version)}… ${u.percent || 0}%<div class="bar"><i style="width:${u.percent || 0}%"></i></div>`;
+  else if (u.kind === 'installing') t = '<span class="spin"></span>正在安装，十几秒后小黑自己回来';
+  else if (u.kind === 'error') { t = '<span class="muted">' + esc(u.message || '连不上更新服务器') + '</span>'; b = btn('重试', 'check'); }
+  else if (u.version && u.skipped) { t = `已跳过 ${esc(u.version)}<div class="muted">更新的版本出来，会再提醒你</div>`; b = btn('还是更新吧', 'unskip'); }
+  // 有新版本（下好了或还没下）：「现在更新」直接在这里装（还没下就先下，进度在这里显示）；更新说明点小字开卡片看
+  else if (u.version) { t = `<span class="new">有新版本 ${esc(u.version)}</span><div><button class="link" data-do="show">看看更新了什么</button></div>`; b = btn('现在更新', 'install', true); }
+  else t = '<span class="ok">✓ 已经是最新版</span>';
+  $('upd').innerHTML = t; $('updBtn').innerHTML = b;
+  $('autoRow').style.display = s.hasUpdater ? '' : 'none'; $('auto').checked = !!s.auto;
+  const g = s.groups || {}, a = g.author || {};
+  const asec = $('author').closest('.sec');
+  if (a.name) { $('author').innerHTML = `${esc(a.name)}<br>微信 ${esc(a.wechat)}　QQ ${esc(a.qq)}`; asec.style.display = ''; }
+  else { $('author').innerHTML = ''; asec.style.display = 'none'; }
+  requestAnimationFrame(() => ipcRenderer.send('about-size', document.body.scrollHeight));
+}
+ipcRenderer.invoke('about-state').then(show);
+ipcRenderer.on('about', (_e, s) => show(s));
+document.body.onclick = async (e) => {
+  const b = e.target.closest('[data-do]'); if (!b) return;
+  ipcRenderer.send('about-do', b.dataset.do);
+};
+$('auto').onchange = () => ipcRenderer.send('about-do', $('auto').checked ? 'auto-on' : 'auto-off');
+addEventListener('keydown', (e) => { if (e.key === 'Escape') ipcRenderer.send('about-do', 'close'); });
+</script>
+</body>
+</html>

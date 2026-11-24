@@ -1,0 +1,139 @@
+{
+ "note": "11-09 TV 猫收起／展开逐帧图（mockup/v471catball）。画布单位＝TV 坐姿 cat_sit 素材像素；锚点＝两脚底中心；A 从 A01 开始（A00 比坐姿高，不用）。ms＝停多少毫秒。 11-09：A 末尾加一帧闭眼扁团（眨眼）再交程序球；B 去掉 TV 睁眼球，程序球直接接闭眼压扁——两处都是为了不让 TV 球眼和程序球眼当面换。 11-09 二改：展开＝收起倒着走（压扁→弹起拉长→最高点睁眼→甩尾伸腿→四腿垂着落下→压低→坐），全用 TV 原画，去掉倒蜷 A03。 11-09 三改：倒放作废（TV 那段猫往远处跳，大小是远近，倒放成了冲向镜头、四腿大黑罩子比坐姿还大）。照 TV 第 26 集笼子：闭眼压扁两帧 → 一下变压低猫（按头宽缩到和坐姿一样，B04）→ 坐姿睁眼。 11-09 四改：嘿咻长成猫（用户选①，先耳朵→再腿→再身子；mockup/v472catgrow ChatGPT GIF 第 2 次 G01～G13，整条一个倍数，末帧头宽＝坐姿）。B02 闭眼压扁 → BG01～BG13 每帧 50ms → 坐姿闭眼 BG99 → 半睁 BG98（平时眨眼两张）→ 坐姿睁眼（finishOut）。",
+ "canvas": [
+  336,
+  477
+ ],
+ "anchor": [
+  187,
+  453
+ ],
+ "A": [
+  {
+   "file": "A01_crouch2_flat.png",
+   "ms": 83
+  },
+  {
+   "file": "A02_leap_black.png",
+   "ms": 83
+  },
+  {
+   "file": "A03_flip_curl.png",
+   "ms": 83
+  },
+  {
+   "file": "A04_tuck.png",
+   "ms": 83
+  },
+  {
+   "file": "A05_tadpole.png",
+   "ms": 83
+  },
+  {
+   "file": "A06_ball_eyes1.png",
+   "ms": 83
+  },
+  {
+   "file": "A07_ball_eyes2.png",
+   "ms": 83
+  },
+  {
+   "file": "A08_fall_shut1.png",
+   "ms": 83
+  },
+  {
+   "file": "A09_fall_shut2.png",
+   "ms": 83
+  },
+  {
+   "file": "A10_land_flat.png",
+   "ms": 83
+  },
+  {
+   "file": "A11_ball_open1.png",
+   "ms": 83
+  },
+  {
+   "file": "A12_ball_open2.png",
+   "ms": 167
+  },
+  {
+   "file": "A10_land_flat.png",
+   "ms": 83,
+   "why": "眨一下眼（TV e26 s0038 落车顶后也眨），把 TV 球眼换成程序球眼的那一下藏在闭眼里"
+  }
+ ],
+ "B": [
+  {
+   "file": "B02_squash_shut.png",
+   "ms": 83,
+   "why": "闭眼压扁一下：程序球的眼睛换成画好的眼睛藏在这一眨里"
+  },
+  {
+   "file": "BG01.png",
+   "ms": 50,
+   "why": "睁眼、鼓起"
+  },
+  {
+   "file": "BG02.png",
+   "ms": 50
+  },
+  {
+   "file": "BG03.png",
+   "ms": 50,
+   "why": "冒耳朵"
+  },
+  {
+   "file": "BG04.png",
+   "ms": 50
+  },
+  {
+   "file": "BG05.png",
+   "ms": 50,
+   "why": "伸前腿"
+  },
+  {
+   "file": "BG06.png",
+   "ms": 50
+  },
+  {
+   "file": "BG07.png",
+   "ms": 50,
+   "why": "身子长高"
+  },
+  {
+   "file": "BG08.png",
+   "ms": 50
+  },
+  {
+   "file": "BG09.png",
+   "ms": 50
+  },
+  {
+   "file": "BG10.png",
+   "ms": 50
+  },
+  {
+   "file": "BG11.png",
+   "ms": 50
+  },
+  {
+   "file": "BG12.png",
+   "ms": 50
+  },
+  {
+   "file": "BG13.png",
+   "ms": 100
+  },
+  {
+   "file": "BG99_sit_shut.png",
+   "ms": 83,
+   "why": "坐姿闭眼（平时眨眼那张）：GPT 末帧的眼睛换成坐姿眼睛藏在这一眨里"
+  },
+  {
+   "file": "BG98_sit_half.png",
+   "ms": 60,
+   "why": "坐姿半睁（平时眨眼那张），再交坐姿睁眼"
+  }
+ ]
+}

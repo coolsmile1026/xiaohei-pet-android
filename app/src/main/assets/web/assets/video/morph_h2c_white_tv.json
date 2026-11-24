@@ -1,0 +1,15 @@
+{
+ "w": 215.0,
+ "h": 189.0,
+ "dx": -60.622222222222234,
+ "dy": -184.44537037037037,
+ "fps": 24,
+ "frames": 39,
+ "note": "css px: video element left = Pet.x + dx, top = Pet.y + dy, width = w, height = h",
+ "commit": 1.5,
+ "walkAfter": true,
+ "walkFrames": 0,
+ "walkDir": 1,
+ "endShift": 0.4771,
+ "endShiftNote": "\u4eba\u7ad9\u9ad8\u4e3a\u5355\u4f4d\uff1b\u4f4d\u7f6e\u753b\u8fdb\u7247\u5b50\u91cc\uff0c\u64ad\u5b8c Pet.x \u4e00\u6b21\u632a\u5230\u732b\u7684\u4f4d\u7f6e\u518d\u63a5\u5f80\u53f3\u8d70\uff08v457h3morph\uff09"
+}
