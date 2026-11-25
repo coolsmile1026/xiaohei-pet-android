@@ -97,15 +97,16 @@ class PetService : Service() {
             }
         }
 
-        // 小猫音量也走 filesDir（跨进程可靠）。范围 0..100，默认 100；
-        // 控制页按 10 一档调，evalSettings 把值交给 Sound.setSettings。
+        // 小猫音量也走 filesDir（跨进程可靠）。范围 0..100，默认 60（原版默认值）；
+        // 控制页按 5 一档调，evalSettings 把值交给 Sound.setSettings。
         // 原版 setSettings 会重算 cur 里的音量和 loops 的增益，所以调节即时生效。
+        // 注意：这是 App 内音效音量，不碰系统媒体音量（代码里没有 AudioManager.setStreamVolume）。
         private fun volumeFile(c: Context): File = File(c.filesDir, "pet_volume.level")
         fun volumeLevel(c: Context): Int = try {
             val v = volumeFile(c).readText().trim().toIntOrNull()
-            if (v == null || v !in 0..100) 100 else v
+            if (v == null || v !in 0..100) 60 else v
         } catch (_: Exception) {
-            100
+            60
         }
         fun setVolumeLevel(c: Context, v: Int) {
             try {
@@ -329,7 +330,6 @@ class PetService : Service() {
     private var dockTarget = 0
     private var dockAnim: ValueAnimator? = null
     private var dockPoll: Runnable? = null
-    private var formCat = false
     /** 页面上报的宠物包围盒底边（纯页面坐标），拿来当真实脚底，别再猜屏高比例 */
     private var footPageY = 0
 
@@ -560,6 +560,7 @@ class PetService : Service() {
             try { wm.updateViewLayout(v, p) } catch (_: Exception) {}
             return
         }
+        val oldFoot = footPageY
         boxW = bw
         footPageY = by + bh
         boxL = stageOriginX + bx
@@ -568,6 +569,9 @@ class PetService : Service() {
         boxB = boxT + bh
         if (menuMode) return   // 菜单开着时命中区是全屏，别被 pet-box 拽回去
         applyBoxZone()
+        // 切形态后包围盒底边会跳（人比猫高、嘿咻更矮），当场把窗口挪到新落脚点，
+        // 不用等下一秒轮询；3px 容差滤掉动作播放时的像素抖动。
+        if (dockEnabled(this) && kotlin.math.abs(footPageY - oldFoot) > 3) applyDockOffset(true)
     }
 
     /** 按最近一次的宠物包围盒（+外扩）摆好命中区 */
@@ -1280,11 +1284,11 @@ class PetService : Service() {
      * 音效不塞进 __emit('settings')：那条链路会连带触发 Scene/Pet 的 applySettings，
      * 这里单独调 Sound.setSettings，互不干扰。soundCats 空对象 = 四个分类全开。
      *
-     * 音量：原版 volume 默认 60、BANK 里每条 mix 多为 0.5，算出来只有 0.30，
-     * 再乘系统媒体音量就几乎听不见（真机点击日志是 "[sound] cat_tilt vol 0.30"）。
-     * 这里默认把总音量拉到 100，并把 mix 放大 1.7 倍封顶 1.0（猫叫 0.5→0.85），
-     * 具体档位由控制页「小猫音量 −/＋」存在 files/pet_volume.level（默认 100），
-     * 只在运行时调 BANK，不改原版 sound.js。__boost 防止 evalSettings 重复调用叠乘。
+     * 音量：只调 App 内音效，不碰系统媒体音量。
+     * 早先为了让轻点能听见，代码里把 BANK 每条 mix 乘了 1.7（猫叫 0.5→0.85），
+     * 结果低档位（5% / 10%）被整体抬高一截，听起来「10% 就很大、5% 又太小」。
+     * 现在撤掉这个放大，回到原版 mix（0.5），音量按 0..100 线性下发，
+     * 默认 60（原版默认），控制页 5 一档，低段过渡才平滑。
      *
      * 循环音效（呼噜 / 打呼）：原版 _loopBuf 在检测到 require 时用 fs.readFileSync，
      * 而 shim 的假 fs 只有内联 JSON，日志是 "fs miss .../fx_snore.wav -> ENOENT"，
@@ -1297,8 +1301,6 @@ class PetService : Service() {
             val vol = volumeLevel(this)
             val js = "(function(){try{if(typeof Sound!=='undefined'){" +
                     "Sound.setSettings({soundOn:$on,volume:$vol,soundCats:{}});" +
-                    "Object.keys(Sound.BANK||{}).forEach(function(k){var b=Sound.BANK[k];" +
-                    "if(!b.__boost){b.__boost=1;b.mix=Math.min(1,(b.mix||0.5)*1.7);}});" +
                     "if(!Sound.__loopWeb){Sound.__loopWeb=1;Sound._loopBuf=function(id){" +
                     "var ctx=Sound._loopCtx();if(!ctx)return Promise.reject(new Error('no ctx'));" +
                     "if(!Sound._bufs[id]){var p=fetch(Sound.BANK[id].file)" +
@@ -1314,7 +1316,12 @@ class PetService : Service() {
     }
 
     /**
-     * 把舞台窗口整体平移，让小猫形态站在「无障碍服务真识别出来的」dock 上沿。
+     * 把舞台窗口整体平移，让宠物站在「无障碍服务真识别出来的」dock 上沿。
+     *
+     * 三种形态（人 / 猫 / 嘿咻）共用同一个舞台窗口，窗口平移对它们都生效，
+     * 所以这里不再按 Forms.isCat() 过滤——早先只给人以外的猫做吸附，人形态和
+     * 嘿咻就一直停在屏幕底部。形态切换后 pet-box 底边会变（人比猫高），
+     * 按 footPageY 实时重算即可，不需要为每种形态单独标定。
      *
      * 为什么不改 Scene.ground()：真机实测 Pet.ground() 是
      * `this.perch?.y ?? World.ground()`，宠物站在固定 perch 上，
@@ -1335,7 +1342,7 @@ class PetService : Service() {
         val ground = DockScan.groundY(this)
         val foot = petFootY()
         val want = when {
-            !dockEnabled(this) || !formCat -> 0
+            !dockEnabled(this) -> 0
             state == "apps" -> 0
             ground != null -> ground - foot
             else -> 0
@@ -1345,7 +1352,7 @@ class PetService : Service() {
         if (dockAnim?.isRunning == true && want == dockTarget) return
         if (want == dockOffset && dockAnim?.isRunning != true) return
         dockTarget = want
-        Log.i(TAG, "dock offset $dockOffset -> $want (cat=$formCat, state=$state, iconTop=${scan?.iconTop}, ground=$ground, foot=$foot)")
+        Log.i(TAG, "dock offset $dockOffset -> $want (state=$state, iconTop=${scan?.iconTop}, ground=$ground, foot=$foot)")
         dockAnim?.cancel()
         val from = dockOffset
         if (!animate) {
@@ -1377,22 +1384,16 @@ class PetService : Service() {
         applyBoxZone()
     }
 
-    /** 形态由页面 Forms.isCat() 决定，长按菜单 / 自动变形也会切，所以轮询而不是只听控制页按钮 */
+    /**
+     * 每秒重算一次吸附目标：页面刚上报 pet-box 时脚底真值才到位，
+     * 长按菜单 / 自动变形切形态后包围盒也会变。want 没变就直接 return，不会重复启动动画。
+     */
     private fun startDockPoll() {
         dockPoll?.let { handler.removeCallbacks(it) }
         val r = object : Runnable {
             override fun run() {
                 if (destroyed) return
-                web?.evaluateJavascript(
-                    "(typeof Forms!=='undefined'&&typeof Forms.isCat==='function'&&Forms.isCat())?1:0"
-                ) { v ->
-                    if (destroyed) return@evaluateJavascript
-                    val cat = v?.trim()?.trim('"') == "1"
-                    formCat = cat
-                    // 每秒重算：页面刚上报 pet-box 时脚底真值才到位；
-                    // want 没变就直接 return，不会重复启动动画
-                    applyDockOffset(true)
-                }
+                applyDockOffset(true)
                 handler.postDelayed(this, 1000)
             }
         }

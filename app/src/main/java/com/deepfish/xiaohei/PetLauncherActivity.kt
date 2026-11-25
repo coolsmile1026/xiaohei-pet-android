@@ -81,8 +81,8 @@ class PetLauncherActivity : Activity() {
             Toast.makeText(this, if (next) "音效已开启" else "音效已关闭", Toast.LENGTH_SHORT).show()
         }
 
-        findViewById<Button>(R.id.volDownBtn).setOnClickListener { adjustVolume(-10) }
-        findViewById<Button>(R.id.volUpBtn).setOnClickListener { adjustVolume(10) }
+        findViewById<Button>(R.id.volDownBtn).setOnClickListener { adjustVolume(-5) }
+        findViewById<Button>(R.id.volUpBtn).setOnClickListener { adjustVolume(5) }
         volText.setOnClickListener { previewVolume() }
 
         dockBtn.setOnClickListener {

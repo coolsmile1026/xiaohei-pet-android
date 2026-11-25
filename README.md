@@ -144,11 +144,11 @@ png     = AES-256-GCM(master, 'XHA1' + 12B iv + 16B tag + 密文)
 
 **之前为什么一声不响（已修）**：原版由 Electron 主进程下发完整 settings，移植版 `PetService.evalSettings()` 只推了 `bodyScale`，于是 `Sound.S.soundOn` 一直保持 `sound.js` 里的初始值 `false`。真机日志是 `[sound] cat_meow muted (off)`——每次 `play()` 都在门控处返回 `false`，音频对象、URL、解码全都正常（`fetch` 返回 `200 audio/ogg`，`canPlayType('audio/ogg; codecs=vorbis')` = `probably`）。所以是「触发了但被总开关挡住」，不是没触发、也不是文件缺失。
 
-修复：`evalSettings()` 现在单独调 `Sound.setSettings({soundOn, volume, soundCats:{}})`（不塞进 `__emit('settings')`，避免连带触发 `Scene`/`Pet` 的 applySettings），并把 `BANK` 的 `mix` 放大 1.7 倍封顶 1（猫叫 0.5→0.85），都是运行时调整、不改 `sound.js`；开关状态存 `files/pet_sound.off`、音量档位存 `files/pet_volume.level`，和自启标志一样走文件而不是 SharedPreferences——服务在 `:pet` 独立进程，SP 跨进程读不到最新值。控制页新增「音效：开 / 关」按钮，点了立刻通过 `ACTION_SETTINGS` 让服务重新下发，不用等重启。
+修复：`evalSettings()` 现在单独调 `Sound.setSettings({soundOn, volume, soundCats:{}})`（不塞进 `__emit('settings')`，避免连带触发 `Scene`/`Pet` 的 applySettings）；开关状态存 `files/pet_sound.off`、音量档位存 `files/pet_volume.level`，和自启标志一样走文件而不是 SharedPreferences——服务在 `:pet` 独立进程，SP 跨进程读不到最新值。控制页新增「音效：开 / 关」按钮，点了立刻通过 `ACTION_SETTINGS` 让服务重新下发，不用等重启。（早期为了让轻点听得见，曾把 `BANK` 的 `mix` 放大 1.7 倍，后来发现低档位被抬得太高，已撤回，见「控制页的小猫音量调节」。）
 
 **第二次排查：开关开了、点了还是听不到（已修）**：真机日志证明点击其实在播——`act tilt` → 约 1.5 秒后 `SNDPLAY cat_tilt ret=true`，系统 `requestAudioFocus(USAGE_MEDIA)` 成功、`AudioHardwareTiny set_spk_ctl spk_on:1`。问题另有两处：
 
-1. 音量只有 `vol 0.30`（原版 `volume:60 × mix:0.5`），再乘系统媒体音量就几乎听不见 → 上面已提到 0.85。
+1. 音量只有 `vol 0.30`（原版 `volume:60 × mix:0.5`），再乘系统媒体音量就几乎听不见 → 当时把 mix 抬到 0.85，后来为了低档位手感又撤回了（见「控制页的小猫音量调节」）。
 2. 原版只有少数动作挂了 CUE，`click -> busy` / `click -> wake` 这类点击根本不发音，带 CUE 的还要等 1.5 秒；「切换形态」更是从来没挂音效。拿这两个操作当测试，自然觉得没声音。
 
 于是补了交互反馈：`relayTouch` 给「真·轻点」（短按、无拖动、2 秒节流，不干扰长按和拖拽）直接补一声即时 `cat_meow`；控制页「切换形态」通过新增的 `ACTION_SOUND` / `PetService.playSound()` 也补一声。点完立刻有声，动作本身的 CUE 稍后可能再响一声，属正常叠加。
@@ -157,7 +157,12 @@ png     = AES-256-GCM(master, 'XHA1' + 12B iv + 16B tag + 密文)
 
 真机验证汇总：启动后 `Sound.S.soundOn=true`；点静音变 `false` 且日志回到 `muted (off)`，再点开恢复；轻点猫 `[sound] cat_meow vol 0.85` + `spk_on: 1`；切换形态同样一声；睡觉/醒来 `fx_snore loop on/off`。
 
-**控制页的小猫音量调节**：紧挨「音效：开 / 关」下面一行是 `− 小猫音量：100%（点此试听） ＋`。点击 −/＋ 按 10 一档在 0..100 之间调，默认 100（对应猫叫 `vol 0.85`），中间数字可点、或者每次调档后自动试听一声 `cat_meow`（连续点只试听最后一声，避免叠成一串）；静音时调档只存值、不试听并提示先开启。档位写进 `files/pet_volume.level`，`ACTION_SETTINGS` 立刻重发 settings；`sound.js` 的 `setSettings` 会重算正在播放的一次性音效音量与循环音效的 gain，所以连打呼/呼噜都会跟着变，正在播的声音也即时生效。真机实测 100→90→80 依次是 `cat_meow vol 0.85 / 0.77 / 0.68`，重启服务后档位保持。
+**控制页的小猫音量调节**：紧挨「音效：开 / 关」下面一行是 `− 小猫音量：20%（点此试听） ＋`。点击 −/＋ 按 **5 一档**在 0..100 之间调，默认 **60**（原版默认值），中间数字可点试听，调档后也会自动试听一声 `cat_meow`（连续点只试听最后一声，避免叠成一串）；静音时调档只存值、不试听并提示先开启。档位写进 `files/pet_volume.level`，`ACTION_SETTINGS` 立刻重发 settings；`sound.js` 的 `setSettings` 会重算正在播放的一次性音效音量与循环音效的 gain，所以连打呼/呼噜都会跟着变，正在播的声音也即时生效。
+
+> **这是 App 内的音效音量，不是系统媒体音量**：代码里没有任何 `AudioManager.setStreamVolume` 调用，电视的系统音量不会被改。
+> 之前为了轻点能听见，运行时把 `BANK` 每条 `mix` 乘了 1.7（猫叫 0.5→0.85），结果低档位整体被抬高一截——
+> 反馈是「10% 就有点大、5% 又太小，过渡不平滑」。现在这个放大已撤回，回到原版 `mix`（0.5），
+> 音量按 0..100 线性下发，步进从 10 改成 5。真机实测 20% → `cat_meow vol 0.10`，25% → `0.13`；档位重启后保持。
 
 顺带修了一个会挡住按钮的坑：宠物悬浮命中区（`hitView`）盖在控制页上方时，右侧按钮的点击会被宠物吃掉，日志是 `touch down` 而不是按钮点击。控制页 `onResume` 通过 `ACTION_FRONT` 让服务把命中区临时移出屏幕（`applyBoxZone()` 里 `controlFront` 分支），`onPause` 再摆回宠物身上；真机确认前台时窗口在 `(-10000,-10000)`、退出后回到 `(1004,311)`，点猫照常触发。
 
@@ -183,24 +188,26 @@ node tools/build-data.js
 
 **识别原理**：`DockWatchService` 是一个 `AccessibilityService`，`packageNames=app.orchard.tv`，只读节点树、不点击、不输入、不读其它应用内容。它遍历 `rootInActiveWindow`：
 
-- dock 显示时是底部一排 5 个 `android.view.View`（focusable），实测 bounds `[75,586][271,696]`，下面各有 TextView 标签（AI健康管家 / 云视听小电视 / VidHub / Marco Movie / 当贝市场）；当前有焦点那个会被 Compose 合并成稍大一圈的 `[527,578][753,704]`。
+- dock 显示时是底部一排 5 个 `android.view.View`（focusable），实测 bounds `[75,586][271,696]`，下面各有 TextView 标签（云视听小电视 / VidHub / 天翼超高清 / Marco Movie / 当贝市场）；当前有焦点那个会被 Compose 合并成稍大一圈的 `[527,578][753,704]`。
 - 应用列表是同样规格的 3 行图标（top ≈ 119 / 296 / 473）。所以按「图标行数 ≥ 2」判为 `apps`，「唯一一行且 top > 0.55×屏高」判为 `dock`，取该行 top 的**中位数**（避免焦点框放大 8px 把上沿带偏）。
 - 标签只收图标正下方、长度 ≤ 24、宽度 ≤ 320、水平对齐的短文本；屏保壁纸的版权长文本会被 `flagIncludeNotImportantViews` 带进树里，必须排掉。
 
 事件驱动 + 1.5s 轮询兜底，状态/图标顶变化时才通知舞台。结果写 `files/pet_dock.scan`（JSON：`state / iconTop / count / labels / at`，临时文件 + rename 防读半截）。无障碍服务与舞台同在 `:pet` 进程，直接发 `ACTION_DOCK`；控制页在主进程，只读同一个 filesDir 文件，不用 SharedPreferences。
 
-**落脚位置**：`图标顶 + 落脚微调 = 猫脚底目标 y`。默认微调 `-26`，586 → 560，正好是 dock 半透明面板上沿。`−/＋` 每次 10px、范围 −80..80，存 `files/pet_dock.trim`，即时下发并连续缓动。
+**落脚位置**：`图标顶 + 落脚微调 = 宠物脚底目标 y`。默认微调 `-26`，586 → 560，正好是 dock 半透明面板上沿。`−/＋` 每次 10px、范围 −80..80，存 `files/pet_dock.trim`，即时下发并连续缓动。
 
 **为什么平移窗口、以及脚底真值**：`Pet.ground()` 走固定 perch，改 `Scene.ground()` 没用，所以原生层平移整个舞台窗口。窗口下移量 `v = ground - footPageY`，`footPageY` 取页面实际上报的 `pet-box` 底边（本机 754），`LayoutParams.y = 44 + stageY - v`。本机 `v = 560 - 754 = -194`（窗口上移 194px，`y=44→238`）。**上一版按屏高比例把脚底猜成 554，算出来只有 6px，猫其实还踩在 dock 下半截**——这版用真实包围盒修掉了。`stageOriginY` 同步变化，命中区跟着走，长按和拖动不受影响。
 
-**「爬」**：`ValueAnimator` 700ms 连续改窗口 y，不是闪现；服务每秒轮询形态并重算，但动画正朝同一目标时不会重启（否则会一顿一顿）。
+**三种形态都吸附**：v1.0 首个构建里 `applyDockOffset()` 带了 `!formCat -> 0` 的判断，只对 `Forms.isCat()` 生效，所以人形态和「派嘿咻出去」的黑球一直停在屏幕底部。现在这个判断已去掉——三种形态共用同一个舞台窗口，窗口平移对它们都生效；`footPageY` 直接取各自 `pet-box` 底边，形态切换时 `updateHitZone()` 发现底边变化（>3px）就立刻重算，不用为每种形态单独标定。截图：`shots/dock-form-{cat,human,heixiu}.png`。
 
-| 桌面状态 | 猫的行为 |
+**「爬」**：`ValueAnimator` 700ms 连续改窗口 y，不是闪现；服务每秒重算一次兜底，但动画正朝同一目标时不会重启（否则会一顿一顿）。
+
+| 桌面状态 | 宠物行为（人 / 猫 / 嘿咻都一样） |
 | --- | --- |
 | dock 显示（识别到 5 图标） | 贴到真实图标顶算出的上沿 |
 | dock 收起 / 控制页在前台 | 保持上次识别值，不上下抖 |
 | 应用列表（3 行图标） | 爬回屏幕底部 |
-| 人形态 / 关掉「贴 dock」开关 | 回屏幕底部 |
+| 关掉「贴 dock」开关 | 回屏幕底部 |
 
 控制页「小猫音量」下面：
 
@@ -223,14 +230,31 @@ adb shell settings put secure accessibility_enabled 1
 
 | 操作 | 日志 | 结果 |
 | --- | --- | --- |
-| 呼出 dock | `state=dock iconTop=586 icons=5 labels=AI健康管家 / … / 当贝市场` | 真读到 5 个图标及名称 |
+| 呼出 dock | `state=dock iconTop=586 icons=5 labels=云视听小电视 / … / 当贝市场` | 真读到 5 个图标及名称 |
 | 启动贴合 | `dock offset 0 -> -194 (ground=560, foot=754)`，舞台 `y=44→238` | 猫脚底 ≈556，正好站在面板上沿 |
 | 按下键进应用列表 | `state=apps` → `dock offset -194 -> 0` | 连续爬回屏幕底部 |
 | 返回键回 dock | `state=dock` → `dock offset 0 -> -194` | 连续爬回上沿 |
 | ＋ / − 微调 | `trim=-36` → `-194 -> -204`；`trim=-26` → `-204 -> -194` | 即时缓动，值可恢复 |
-| 人 ⇄ 猫 | `-194 -> 0 (cat=false)` / `0 -> -194 (cat=true)` | 人形态完全不受影响 |
+| 切人形态 | `cmd toggleForm`，`offset` 保持 `-194` | 人直接站在上沿（`shots/dock-form-human.png`） |
+| 派嘿咻出去 | `cmd heixiu out` → `act hxv` | 嘿咻在 dock 上沿跑动，不落到底部（`shots/dock-form-heixiu.png`） |
 
-截图：`shots/dock-a11y-stand.png`（站立贴合）、`shots/dock-a11y-final.png`（最终包）、`shots/dock-a11y-control.png`（控制页识别状态）。
+截图：`shots/dock-a11y-stand.png`（站立贴合）、`shots/dock-a11y-final.png`（最终包）、`shots/dock-a11y-control.png`（控制页识别状态）、`shots/dock-form-{cat,human,heixiu}.png`（三形态）。
+
+### 卸载预装推广应用（AI健康管家 / 翼家智话）
+
+这台 S100V8H 的系统分区预装了 `Yjjk`（AI健康管家，`com.to21cn.yjjk`）和 `Yjzh`（翼家智话，`com.chinatelecom.smartvoicebox`），桌面会露出两个图标，dock 第一格也被「AI健康管家」占着。只对当前用户卸载即可：
+
+```bash
+adb shell pm uninstall --user 0 com.to21cn.yjjk
+adb shell pm uninstall --user 0 com.chinatelecom.smartvoicebox
+```
+
+两条都返回 `Success`，之后 `pm list packages` 里不再出现，Aerial 应用列表和 dock 标签里也没有了（dock 第一格变成「云视听小电视」）。APK 仍在 `/system/app/`，所以恢复出厂或系统 OTA 可能装回；要手动恢复：
+
+```bash
+adb shell cmd package install-existing com.to21cn.yjjk
+adb shell cmd package install-existing com.chinatelecom.smartvoicebox
+```
 
 ---
 
